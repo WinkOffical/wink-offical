@@ -1,154 +1,299 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Wink Official - ComboBox Filtre & QR Tara</title>
-  <style>
-    body { margin:0; font-family:Arial,sans-serif; background:#f0f0f0; overflow:hidden; }
-    .navbar { position:fixed; top:0; left:0; right:0; height:50px; background:#e91e63; color:white; display:flex; align-items:center; padding:0 20px; z-index:10; }
-    .menu-btn { font-size:26px; background:none; border:none; color:white; cursor:pointer; margin-right:20px; }
-    #sideMenu { position:fixed; top:50px; left:-250px; width:220px; bottom:0; background:#fff; padding:10px; gap:10px; display:flex; flex-direction:column; overflow-y:auto; transition:left .3s; z-index:9; }
-    #sideMenu.active { left:0; }
-    .search-row { display:flex; align-items:center; gap:8px; }
-    .search-row input { flex:1; padding:5px; font-size:16px; }
-    .search-row button { background:#e91e63; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer; font-weight:bold; }
-    select { width:100%; padding:5px; font-size:16px; }
-    #table-container { position:fixed; top:50px; left:0; right:0; bottom:0; background:white; overflow:auto; transition:left .3s,width .3s; z-index:5; }
-    #table-container.shifted { left:220px; width:calc(100% - 220px); }
-    #table-title { margin:12px 0 10px 10px; color:#e91e63; font-size:22px; }
-    table { width:100%; min-width:600px; border-collapse:collapse; }
-    th,td { border:1px solid #ccc; padding:8px; text-align:left; }
-    th { background:#e91e63; color:white; position:sticky; top:0; }
-    tr:nth-child(even) { background:#fafafa; }
-    tr:hover { background:#f1f1f1; }
-    /* QR Modal */
-    #qr-modal { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); display:none; justify-content:center; align-items:center; z-index:1000; }
-    #qr-modal.active { display:flex; }
-    #qr-box { width:90vw; max-width:400px; height:400px; background:white; border-radius:8px; overflow:hidden; display:flex; flex-direction:column; }
-    #qr-reader { flex:1; }
-    #qr-close { background:#e91e63; color:white; border:none; padding:8px; cursor:pointer; font-weight:bold; }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wink Official - ComboBox Filtre</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            overflow: hidden;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: #e91e63;
+            color: white;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+            .navbar .menu-btn {
+                font-size: 26px;
+                background: none;
+                border: none;
+                color: white;
+                cursor: pointer;
+                margin-right: 20px;
+            }
+
+            .navbar span {
+                font-weight: bold;
+                font-size: 20px;
+            }
+
+        #sideMenu {
+            position: fixed;
+            top: 50px;
+            left: -250px;
+            width: 220px;
+            bottom: 0;
+            background: #fff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            overflow-y: auto;
+            gap: 10px;
+            z-index: 9;
+            transition: left 0.3s ease;
+        }
+
+            #sideMenu.active {
+                left: 0;
+            }
+
+            #sideMenu input,
+            #sideMenu select {
+                width: 100%;
+                padding: 5px;
+                font-size: 16px;
+                box-sizing: border-box;
+            }
+
+        #table-container {
+            position: fixed;
+            top: 50px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            overflow: auto;
+            z-index: 5;
+            transition: left 0.3s ease, width 0.3s ease;
+        }
+
+            #table-container.shifted {
+                left: 241px;
+                width: calc(100% - 220px);
+            }
+
+        #table-title {
+            margin: 0.5cm 0 10px 10px;
+            color: #e91e63;
+            font-size: 24px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 600px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #e91e63;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        tr:hover {
+            background: #f1f1f1;
+        }
+    </style>
 </head>
 <body>
-  <div class="navbar">
-    <button class="menu-btn" onclick="toggleMenu()">☰</button>
-    <span>Wink Official</span>
-  </div>
 
-  <div id="sideMenu">
-    <div class="search-row">
-      <input id="search-box" placeholder="4. sütunda ara..." />
-      <button id="qr-btn">QR Tara</button>
+    <div class="navbar">
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        <span>Wink Official</span>
     </div>
-    <select id="combo-box1"></select>
-    <select id="combo-box2"></select>
-    <select id="combo-box3"></select>
-    <select id="combo-box4"></select>
-    <select id="combo-box5"></select>
-    <select id="combo-box6"></select>
-    <select id="combo-box7"></select>
-    <select id="combo-box8"></select>
-    <select id="combo-box9"></select>
-    <select id="combo-box10"></select>
-  </div>
 
-  <div id="table-container">
-    <h2 id="table-title">Baza</h2>
-    <table id="data-table"><thead><tr></tr></thead><tbody></tbody></table>
-  </div>
-
-  <div id="qr-modal">
-    <div id="qr-box">
-      <div id="qr-reader"></div>
-      <button id="qr-close">Kapat</button>
+    <div id="sideMenu">
+        <input id="search-box" placeholder="4. sütunda ara..." />
+        <select id="combo-box1"></select>
+        <select id="combo-box2"></select>
+        <select id="combo-box3"></select>
+        <select id="combo-box4"></select>
+        <select id="combo-box5"></select>
+        <select id="combo-box6"></select>
+        <select id="combo-box7"></select>
+        <select id="combo-box8"></select>
+        <select id="combo-box9"></select>
+        <select id="combo-box10"></select>
     </div>
-  </div>
 
-  <script src="https://unpkg.com/html5-qrcode@2.3.9/minified/html5-qrcode.min.js"></script>
-  <script>
-    let html5QrCode;
-    const sheetId = "1muERJfee4k6vxP49NkMGUGo0t5RzpMTbszaAQ5KOAqo";
-    const jsonUrl = `https://opensheet.vercel.app/${sheetId}/SheetName`;
-    let originalData = [], visibleCols = 21;
-    const comboBoxes = [
-      {id:"combo-box1",cols:[0]}, {id:"combo-box2",cols:[1]}, {id:"combo-box3",cols:[2]},
-      {id:"combo-box4",cols:[5]}, {id:"combo-box5",cols:[6]}, {id:"combo-box6",cols:[7]},
-      {id:"combo-box7",cols:[9]}, {id:"combo-box8",cols:[12]}, {id:"combo-box9",cols:[15]},
-      {id:"combo-box10",cols:[17,18,19,20]}
-    ];
+    <div id="table-container">
+        <h2 id="table-title">Baza</h2>
+        <table id="data-table">
+            <thead><tr></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-    window.onload = () => fetch(jsonUrl)
-      .then(r=>r.json()).then(data=>{ originalData=data; setupTable(); })
-      .catch(e=>alert(e));
+    <script>
+        const sheetId = "1muERJfee4k6vxP49NkMGUGo0t5RzpMTbszaAQ5KOAqo";
+        const sheetName = "SheetName";
+        const jsonUrl = `https://opensheet.vercel.app/${sheetId}/${sheetName}`;
 
-    function toggleMenu() {
-      document.getElementById('sideMenu').classList.toggle('active');
-      document.getElementById('table-container').classList.toggle('shifted');
-    }
-    function setupTable() {
-      const thead = document.querySelector('#data-table thead tr');
-      thead.innerHTML='';
-      Object.keys(originalData[0]).slice(0,visibleCols).forEach(h=>{
-        const th=document.createElement('th'); th.textContent=h; thead.appendChild(th);
-      });
-      setupFilters(); applyFilters();
-    }
-    function setupFilters() {
-      comboBoxes.forEach(({id,cols})=>{
-        const sel=document.getElementById(id); sel.innerHTML='';
-        const oAll=document.createElement('option'); oAll.value=oAll.textContent='TÜMÜ'; sel.appendChild(oAll);
-        const set=new Set(); originalData.forEach(r=>cols.forEach(ci=>{ const v=r[Object.keys(r)[ci]]; if(v) set.add(v); }));
-        Array.from(set).sort().forEach(v=>{ const o=document.createElement('option'); o.value=o.textContent=v; sel.appendChild(o); });
-        sel.onchange=applyFilters;
-      });
-      document.getElementById('search-box').oninput=applyFilters;
-    }
-    function applyFilters() {
-      const text=document.getElementById('search-box').value.toLowerCase();
-      const filters=comboBoxes.map(({id,cols})=>({v:document.getElementById(id).value,cols}));
-      const filtered=originalData.filter(r=>{
-        if(text&&!r[Object.keys(r)[3]].toLowerCase().includes(text))return false;
-        return filters.every(f=>f.v==='TÜMÜ'||f.cols.some(ci=>r[Object.keys(r)[ci]]===f.v));
-      });
-      fillTable(filtered);
-      // update combos
-      comboBoxes.forEach(({id,cols})=>{
-        const sel=document.getElementById(id),prev=sel.value; sel.innerHTML='';
-        const oAll=document.createElement('option'); oAll.value=oAll.textContent='TÜMÜ'; sel.appendChild(oAll);
-        const set=new Set(); filtered.forEach(r=>cols.forEach(ci=>{ const v=r[Object.keys(r)[ci]]; if(v) set.add(v); }));
-        Array.from(set).sort().forEach(v=>{ const o=document.createElement('option'); o.value=o.textContent=v; sel.appendChild(o); });
-        sel.value=set.has(prev)?prev:'TÜMÜ';
-      });
-    }
-    function fillTable(data) {
-      const tbody=document.querySelector('#data-table tbody'); tbody.innerHTML='';
-      data.forEach(r=>{
-        const tr=document.createElement('tr');
-        Object.keys(r).slice(0,visibleCols).forEach(k=>{ const td=document.createElement('td'); td.textContent=r[k]; tr.appendChild(td); });
-        tbody.appendChild(tr);
-      });
-    }
-    // QR
-    document.getElementById('qr-btn').onclick=()=>{
-      document.getElementById('qr-modal').classList.add('active');
-      html5QrCode=new Html5Qrcode('qr-reader');
-      // test getUserMedia first
-      navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
-        .then(stream=>{
-          html5QrCode.start('environment',{fps:10,qrbox:250},msg=>{
-            document.getElementById('search-box').value=msg;
-            applyFilters();
-            html5QrCode.stop().then(()=>document.getElementById('qr-modal').classList.remove('active'));
-          })
-          .catch(e=>{alert('QR start hatası:'+e);document.getElementById('qr-modal').classList.remove('active');});
-        })
-        .catch(err=>{alert('Kamera erişim hatası: '+err);document.getElementById('qr-modal').classList.remove('active');});
-    };
-    document.getElementById('qr-close').onclick=()=>{
-      if(html5QrCode) html5QrCode.stop();
-      document.getElementById('qr-modal').classList.remove('active');
-    };
-  </script>
+        let originalData = [];
+        const visibleCols = 21;
+
+        function toggleMenu() {
+            const menu = document.getElementById("sideMenu");
+            const tableContainer = document.getElementById("table-container");
+            menu.classList.toggle("active");
+            tableContainer.classList.toggle("shifted");
+        }
+
+        const comboBoxes = [
+            { id: "combo-box1", cols: [0] },
+            { id: "combo-box2", cols: [1] },
+            { id: "combo-box3", cols: [2] },
+            { id: "combo-box4", cols: [5] },
+            { id: "combo-box5", cols: [6] },
+            { id: "combo-box6", cols: [7] },
+            { id: "combo-box7", cols: [9] },
+            { id: "combo-box8", cols: [12] },
+            { id: "combo-box9", cols: [15] },
+            { id: "combo-box10", cols: [17, 18, 19, 20] }
+        ];
+
+        function loadSheetData() {
+            fetch(jsonUrl).then(res => res.json()).then(data => {
+                originalData = data;
+                const thead = document.querySelector("#data-table thead tr");
+                thead.innerHTML = "";
+                Object.keys(data[0]).slice(0, visibleCols).forEach(h => {
+                    const th = document.createElement("th");
+                    th.textContent = h;
+                    thead.appendChild(th);
+                });
+                setupFilters(data);
+                fillTable(data);
+            }).catch(e => alert(e));
+        }
+
+        function setupFilters(data) {
+            comboBoxes.forEach(({ id, cols }) => {
+                const sel = document.getElementById(id);
+                sel.innerHTML = "";
+                const oAll = document.createElement("option");
+                oAll.value = "TÜMÜ";
+                oAll.textContent = "TÜMÜ";
+                sel.appendChild(oAll);
+                const set = new Set();
+                data.forEach(r =>
+                    cols.forEach(ci => {
+                        const v = r[Object.keys(r)[ci]];
+                        if (v) set.add(v);
+                    })
+                );
+                Array.from(set).sort().forEach(v => {
+                    const o = document.createElement("option");
+                    o.value = v;
+                    o.textContent = v;
+                    sel.appendChild(o);
+                });
+                sel.addEventListener("change", applyFilters);
+            });
+            document.getElementById("search-box").addEventListener("input", applyFilters);
+        }
+
+        function fillTable(data) {
+            const tbody = document.querySelector("#data-table tbody");
+            tbody.innerHTML = "";
+            data.forEach(r => {
+                const tr = document.createElement("tr");
+                Object.keys(r).slice(0, visibleCols).forEach(k => {
+                    const td = document.createElement("td");
+                    td.textContent = r[k];
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyFilters() {
+            const searchText = document.getElementById("search-box").value.toLowerCase();
+
+            // Filtreleri önce alalım
+            let filters = comboBoxes.map(({ id, cols }) => ({
+                v: document.getElementById(id).value,
+                cols
+            }));
+
+            // İlk olarak veriyi filtrele
+            let filtered = originalData.filter(r => {
+                if (searchText && !r[Object.keys(r)[3]].toLowerCase().includes(searchText)) return false;
+                return filters.every(f => f.v === "TÜMÜ" || f.cols.some(ci => r[Object.keys(r)[ci]] === f.v));
+            });
+
+            // Tabloyu güncelle
+            fillTable(filtered);
+
+            // Şimdi comboBox'lardaki seçenekleri güncelle (filtrelenmiş veriye göre)
+            comboBoxes.forEach(({ id, cols }) => {
+                const sel = document.getElementById(id);
+                const selectedValue = sel.value; // Mevcut seçili değeri al
+
+                // Seçenekleri temizle
+                sel.innerHTML = "";
+
+                // "TÜMÜ" seçeneği ekle
+                const oAll = document.createElement("option");
+                oAll.value = "TÜMÜ";
+                oAll.textContent = "TÜMÜ";
+                sel.appendChild(oAll);
+
+                // Filtrelenmiş veriden benzersiz değerleri topla
+                const set = new Set();
+                filtered.forEach(r =>
+                    cols.forEach(ci => {
+                        const v = r[Object.keys(r)[ci]];
+                        if (v) set.add(v);
+                    })
+                );
+
+                // Değerleri sırala ve seçenek olarak ekle
+                Array.from(set).sort().forEach(v => {
+                    const o = document.createElement("option");
+                    o.value = v;
+                    o.textContent = v;
+                    sel.appendChild(o);
+                });
+
+                // Eğer önceki seçili değer hala varsa onu seç, yoksa "TÜMÜ" seç
+                if (selectedValue !== "TÜMÜ" && set.has(selectedValue)) {
+                    sel.value = selectedValue;
+                } else {
+                    sel.value = "TÜMÜ";
+                }
+            });
+        }
+
+
+        window.onload = loadSheetData;
+    </script>
 </body>
 </html>
