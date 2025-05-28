@@ -11,115 +11,86 @@
             background: #f0f0f0;
             overflow: hidden;
         }
-
         .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: #e91e63;
-            color: white;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 10;
+            position: fixed; top: 0; left: 0; right: 0; height: 50px;
+            background: #e91e63; color: white;
+            display: flex; align-items: center; padding: 0 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10;
         }
-
-            .navbar .menu-btn {
-                font-size: 26px;
-                background: none;
-                border: none;
-                color: white;
-                cursor: pointer;
-                margin-right: 20px;
-            }
-
-            .navbar span {
-                font-weight: bold;
-                font-size: 20px;
-            }
+        .navbar .menu-btn {
+            font-size: 26px; background: none; border: none;
+            color: white; cursor: pointer; margin-right: 20px;
+        }
+        .navbar span { font-weight: bold; font-size: 20px; }
 
         #sideMenu {
-            position: fixed;
-            top: 50px;
-            left: -250px;
-            width: 220px;
-            bottom: 0;
-            background: #fff;
+            position: fixed; top: 50px; left: -250px;
+            width: 220px; bottom: 0; background: #fff;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            overflow-y: auto;
-            gap: 10px;
-            z-index: 9;
-            transition: left 0.3s ease;
+            display: flex; flex-direction: column;
+            padding: 10px; overflow-y: auto; gap: 10px;
+            z-index: 9; transition: left 0.3s ease;
         }
-
-            #sideMenu.active {
-                left: 0;
-            }
-
-            #sideMenu input,
-            #sideMenu select {
-                width: 100%;
-                padding: 5px;
-                font-size: 16px;
-                box-sizing: border-box;
-            }
+        #sideMenu.active { left: 0; }
+        #sideMenu input, #sideMenu select {
+            width: 100%; padding: 5px; font-size: 16px; box-sizing: border-box;
+        }
 
         #table-container {
-            position: fixed;
-            top: 50px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: white;
-            overflow: auto;
-            z-index: 5;
+            position: fixed; top: 50px; left: 0;
+            right: 0; bottom: 0; background: white;
+            overflow: auto; z-index: 5;
             transition: left 0.3s ease, width 0.3s ease;
         }
-
-            #table-container.shifted {
-                left: 241px;
-                width: calc(100% - 220px);
-            }
+        #table-container.shifted {
+            left: 241px; width: calc(100% - 220px);
+        }
 
         #table-title {
             margin: 0.5cm 0 10px 10px;
-            color: #e91e63;
-            font-size: 24px;
+            color: #e91e63; font-size: 24px;
         }
 
         table {
-            width: 100%;
-            min-width: 600px;
+            width: 100%; min-width: 600px;
             border-collapse: collapse;
         }
-
         th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+            border: 1px solid #ddd; padding: 8px; text-align: left;
         }
-
         th {
-            background-color: #e91e63;
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 2;
+            background-color: #e91e63; color: white;
+            position: sticky; top: 0; z-index: 2;
+        }
+        tr:nth-child(even) { background: #f9f9f9; }
+        tr:hover { background: #f1f1f1; cursor: pointer; }
+
+        #image-viewer {
+            position: fixed; bottom: 10px; right: 10px;
+            width: 320px; height: 320px;
+            background: white; box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            padding: 0; overflow: hidden; border-radius: 10px;
+            z-index: 20; display: none; transition: all 0.3s ease;
         }
 
-        tr:nth-child(even) {
-            background: #f9f9f9;
+        #image-viewer iframe {
+            width: 100%; height: 100%; border: 0;
         }
 
-        tr:hover {
-            background: #f1f1f1;
+        #image-viewer.fullscreen {
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100vw; height: 100vh;
+            border-radius: 0; z-index: 1000;
         }
+
+        #close-btn, #fullscreen-btn {
+            position: absolute;
+            background: #e91e63; color: white;
+            border: none; font-size: 20px; padding: 10px 15px;
+            cursor: pointer; z-index: 1001; border-radius: 5px;
+        }
+        #close-btn { top: 10px; right: 10px; }
+        #fullscreen-btn { top: 10px; left: 10px; }
     </style>
 </head>
 <body>
@@ -129,19 +100,27 @@
         <span>Wink Official</span>
     </div>
 
-    <div id="sideMenu">
-        <input id="search-box" placeholder="4. sütunda ara..." />
-        <select id="combo-box1"></select>
-        <select id="combo-box2"></select>
-        <select id="combo-box3"></select>
-        <select id="combo-box4"></select>
-        <select id="combo-box5"></select>
-        <select id="combo-box6"></select>
-        <select id="combo-box7"></select>
-        <select id="combo-box8"></select>
-        <select id="combo-box9"></select>
-        <select id="combo-box10"></select>
-    </div>
+    <!-- ... önceki kod aynı kalır ... -->
+<div id="sideMenu">
+  <div><label for="combo-box1">Mobilya</label><select id="combo-box1"></select></div>
+  <div><label for="combo-box2">Oda</label><select id="combo-box2"></select></div>
+  <div><label for="combo-box3">Mobilya</label><select id="combo-box3"></select></div>
+  <div><label for="combo-box4">Delik</label><select id="combo-box4"></select></div>
+  <div><label for="combo-box5">Material</label><select id="combo-box5"></select></div>
+  <div><label for="combo-box6">Kalinlik</label><select id="combo-box6"></select></div>
+  <div><label for="combo-box7">Reng</label><select id="combo-box7"></select></div>
+  <div><label for="combo-box8">PVC Var?</label><select id="combo-box8"></select></div>
+  <div><label for="combo-box9">Islem Var?</label><select id="combo-box9"></select></div>
+  <div><label for="combo-box10">PVC</label><select id="combo-box10"></select></div>
+
+  <!-- Arama kutusunu en alta aldık -->
+  <div style="margin-top: auto;">
+    <input id="search-box" placeholder="4. sütunda ara..." />
+  </div>
+</div>
+<!-- ... sonrası aynı kalır ... -->
+
+
 
     <div id="table-container">
         <h2 id="table-title">Baza</h2>
@@ -151,149 +130,205 @@
         </table>
     </div>
 
+    <div id="image-viewer">
+        <button id="close-btn" onclick="closeViewer(event)">X</button>
+        <button id="fullscreen-btn" onclick="toggleFullscreen(event)">⛶</button>
+    </div>
+
     <script>
         const sheetId = "1muERJfee4k6vxP49NkMGUGo0t5RzpMTbszaAQ5KOAqo";
         const sheetName = "SheetName";
         const jsonUrl = `https://opensheet.vercel.app/${sheetId}/${sheetName}`;
-
         let originalData = [];
         const visibleCols = 21;
 
         function toggleMenu() {
-            const menu = document.getElementById("sideMenu");
-            const tableContainer = document.getElementById("table-container");
-            menu.classList.toggle("active");
-            tableContainer.classList.toggle("shifted");
+            document.getElementById("sideMenu").classList.toggle("active");
+            document.getElementById("table-container").classList.toggle("shifted");
         }
 
         const comboBoxes = [
-            { id: "combo-box1", cols: [0] },
-            { id: "combo-box2", cols: [1] },
-            { id: "combo-box3", cols: [2] },
-            { id: "combo-box4", cols: [5] },
-            { id: "combo-box5", cols: [6] },
-            { id: "combo-box6", cols: [7] },
-            { id: "combo-box7", cols: [9] },
-            { id: "combo-box8", cols: [12] },
-            { id: "combo-box9", cols: [15] },
-            { id: "combo-box10", cols: [17, 18, 19, 20] }
+          {id:"combo-box1",cols:[0]},{id:"combo-box2",cols:[1]},{id:"combo-box3",cols:[2]},
+          {id:"combo-box4",cols:[5]},{id:"combo-box5",cols:[6]},{id:"combo-box6",cols:[7]},
+          {id:"combo-box7",cols:[9]},{id:"combo-box8",cols:[12]},{id:"combo-box9",cols:[15]},
+          {id:"combo-box10",cols:[17,18,19,20]}
         ];
 
-        function loadSheetData() {
-            fetch(jsonUrl).then(res => res.json()).then(data => {
-                originalData = data;
-                const thead = document.querySelector("#data-table thead tr");
-                thead.innerHTML = "";
-                Object.keys(data[0]).slice(0, visibleCols).forEach(h => {
-                    const th = document.createElement("th");
-                    th.textContent = h;
-                    thead.appendChild(th);
-                });
-                setupFilters(data);
-                fillTable(data);
-            }).catch(e => alert(e));
+       function loadSheetData(){
+  fetch(jsonUrl).then(r=>r.json()).then(data=>{
+    originalData=data;
+    const thead=document.querySelector("#data-table thead tr");
+    thead.innerHTML="";
+    Object.keys(data[0]).slice(0,visibleCols).forEach(h=>{
+      thead.innerHTML+=`<th>${h}</th>`;
+    });
+    thead.innerHTML += "<th></th>"; // Yeni sütun başlığı
+    setupFilters(data);
+    fillTable(data);
+  }).catch(e=>alert(e));
+}
+
+
+
+
+        function setupFilters(data){
+          comboBoxes.forEach(({id,cols})=>{
+            const sel=document.getElementById(id);
+            sel.innerHTML=`<option value="TÜMÜ">TÜMÜ</option>`;
+            const s=new Set();
+            data.forEach(r=>cols.forEach(ci=>{
+              const v=r[Object.keys(r)[ci]];
+              if(v) s.add(v);
+            }));
+            Array.from(s).sort().forEach(v=>{
+              sel.innerHTML+=`<option value="${v}">${v}</option>`;
+            });
+            sel.onchange=applyFilters;
+          });
+          document.getElementById("search-box").oninput=applyFilters;
         }
 
-        function setupFilters(data) {
-            comboBoxes.forEach(({ id, cols }) => {
-                const sel = document.getElementById(id);
-                sel.innerHTML = "";
-                const oAll = document.createElement("option");
-                oAll.value = "TÜMÜ";
-                oAll.textContent = "TÜMÜ";
-                sel.appendChild(oAll);
-                const set = new Set();
-                data.forEach(r =>
-                    cols.forEach(ci => {
-                        const v = r[Object.keys(r)[ci]];
-                        if (v) set.add(v);
-                    })
-                );
-                Array.from(set).sort().forEach(v => {
-                    const o = document.createElement("option");
-                    o.value = v;
-                    o.textContent = v;
-                    sel.appendChild(o);
-                });
-                sel.addEventListener("change", applyFilters);
-            });
-            document.getElementById("search-box").addEventListener("input", applyFilters);
-        }
+      function fillTable(data){
+  const tb=document.querySelector("#data-table tbody");
+  tb.innerHTML="";
+  data.forEach(r=>{
+    const tr=document.createElement("tr");
 
-        function fillTable(data) {
-            const tbody = document.querySelector("#data-table tbody");
-            tbody.innerHTML = "";
-            data.forEach(r => {
-                const tr = document.createElement("tr");
-                Object.keys(r).slice(0, visibleCols).forEach(k => {
-                    const td = document.createElement("td");
-                    td.textContent = r[k];
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            });
-        }
+    // Eğer 26. sütunda veri varsa (index 25)
+    const keys = Object.keys(r);
+    if (r[keys[25]] && r[keys[25]].toString().trim() !== "") {
+      tr.style.backgroundColor = "yellow";
+    }
+
+    keys.slice(0,visibleCols).forEach(k=>{
+      tr.innerHTML+=`<td>${r[k]||""}</td>`;
+    });
+
+    // 24. sütun (index 23) dosya linki
+    const fileLink = r[keys[23]] || "";
+    const td = document.createElement("td");
+    const btn = document.createElement("button");
+    btn.textContent = "INDIR";
+
+    if (fileLink.trim() === "") {
+      btn.disabled = true;
+    } else {
+      btn.disabled = false;
+     btn.onclick = (e) => {
+  e.stopPropagation();
+  const fileId = getFileId(fileLink);
+  if(fileId){
+    const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = "";  // tarayıcıya dosya indirmesini söyle
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } else {
+    alert("Geçerli dosya linki bulunamadı.");
+  }
+};
+
+    }
+
+    td.appendChild(btn);
+    tr.appendChild(td);
+
+    tr.onclick = ()=>showPreview(r[keys[25]]);
+    tb.appendChild(tr);
+  });
+}
+
+
 
         function applyFilters() {
-            const searchText = document.getElementById("search-box").value.toLowerCase();
+  const txt = document.getElementById("search-box").value.toLowerCase();
 
-            // Filtreleri önce alalım
-            let filters = comboBoxes.map(({ id, cols }) => ({
-                v: document.getElementById(id).value,
-                cols
-            }));
+  // Seçili değerleri al
+  let selectedFilters = comboBoxes.map(({ id, cols }) => ({
+    id,
+    v: document.getElementById(id).value,
+    cols
+  }));
 
-            // İlk olarak veriyi filtrele
-            let filtered = originalData.filter(r => {
-                if (searchText && !r[Object.keys(r)[3]].toLowerCase().includes(searchText)) return false;
-                return filters.every(f => f.v === "TÜMÜ" || f.cols.some(ci => r[Object.keys(r)[ci]] === f.v));
-            });
+  // Filtrelenmiş veriyi hesapla
+  let filteredData = originalData.filter(r => {
+    if (txt && !r[Object.keys(r)[3]].toLowerCase().includes(txt)) return false;
+    return selectedFilters.every(f =>
+      f.v === "TÜMÜ" || f.cols.some(ci => r[Object.keys(r)[ci]] === f.v)
+    );
+  });
 
-            // Tabloyu güncelle
-            fillTable(filtered);
+  // Tabloyu doldur
+  fillTable(filteredData);
 
-            // Şimdi comboBox'lardaki seçenekleri güncelle (filtrelenmiş veriye göre)
-            comboBoxes.forEach(({ id, cols }) => {
-                const sel = document.getElementById(id);
-                const selectedValue = sel.value; // Mevcut seçili değeri al
+  // ComboBox'ları sadece filtrelenmiş veriye göre yeniden doldur
+  selectedFilters.forEach(({ id, cols }) => {
+    const select = document.getElementById(id);
+    const selectedValue = select.value;
+    const set = new Set();
+    filteredData.forEach(r => {
+      cols.forEach(ci => {
+        const v = r[Object.keys(r)[ci]];
+        if (v) set.add(v);
+      });
+    });
 
-                // Seçenekleri temizle
-                sel.innerHTML = "";
+    // Yeni seçenekleri oluştur
+    const options = [`<option value="TÜMÜ">TÜMÜ</option>`];
+    Array.from(set).sort().forEach(v => {
+      options.push(`<option value="${v}">${v}</option>`);
+    });
 
-                // "TÜMÜ" seçeneği ekle
-                const oAll = document.createElement("option");
-                oAll.value = "TÜMÜ";
-                oAll.textContent = "TÜMÜ";
-                sel.appendChild(oAll);
+    select.innerHTML = options.join("");
 
-                // Filtrelenmiş veriden benzersiz değerleri topla
-                const set = new Set();
-                filtered.forEach(r =>
-                    cols.forEach(ci => {
-                        const v = r[Object.keys(r)[ci]];
-                        if (v) set.add(v);
-                    })
-                );
+    // Önceki seçimi korumaya çalış
+    if ([...set].includes(selectedValue)) {
+      select.value = selectedValue;
+    } else {
+      select.value = "TÜMÜ";
+    }
+  });
+}
 
-                // Değerleri sırala ve seçenek olarak ekle
-                Array.from(set).sort().forEach(v => {
-                    const o = document.createElement("option");
-                    o.value = v;
-                    o.textContent = v;
-                    sel.appendChild(o);
-                });
 
-                // Eğer önceki seçili değer hala varsa onu seç, yoksa "TÜMÜ" seç
-                if (selectedValue !== "TÜMÜ" && set.has(selectedValue)) {
-                    sel.value = selectedValue;
-                } else {
-                    sel.value = "TÜMÜ";
-                }
-            });
+        function getFileId(url){
+          let m=url.match(/\/d\/([^\/]+)\//);
+          if(m)return m[1];
+          m=url.match(/[?&]id=([^&]+)/);
+          return m?m[1]:null;
         }
 
+        function showPreview(url){
+          const viewer=document.getElementById("image-viewer");
+          const id=getFileId(url);
+          if(id){
+            viewer.innerHTML = `
+              <button id="close-btn" onclick="closeViewer(event)">X</button>
+              <button id="fullscreen-btn" onclick="toggleFullscreen(event)">⛶</button>
+              <iframe src="https://drive.google.com/file/d/${id}/preview" allow="autoplay"></iframe>`;
+            viewer.style.display="block";
+          } else {
+            viewer.style.display="none";
+          }
+        }
 
-        window.onload = loadSheetData;
+        function closeViewer(event){
+          event.stopPropagation();
+          const viewer = document.getElementById("image-viewer");
+          viewer.classList.remove("fullscreen");
+          viewer.style.display = "none";
+        }
+
+        function toggleFullscreen(event){
+          event.stopPropagation();
+          const viewer = document.getElementById("image-viewer");
+          viewer.classList.toggle("fullscreen");
+        }
+
+        loadSheetData();
     </script>
+
 </body>
 </html>
