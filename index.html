@@ -1,414 +1,618 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Wink Official - ComboBox Filtre</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f0f0f0;
-            overflow: hidden;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wink Official - ComboBox Filtre & QR Okuma</title>
 
-        .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: #e91e63;
-            color: white;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 10;
-        }
-        .navbar .menu-btn {
-            font-size: 26px;
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            margin-right: 20px;
-        }
-        .navbar span {
-            font-weight: bold;
-            font-size: 20px;
-        }
+  <!-- html5-qrcode Kütüphanesi -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.7/html5-qrcode.min.js"></script>
 
-        #sideMenu {
-            position: fixed;
-            top: 50px;
-            left: -250px;
-            width: 220px;
-            bottom: 0;
-            background: #fff;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            overflow-y: auto;
-            gap: 10px;
-            z-index: 9;
-            transition: left 0.3s ease;
-        }
-        #sideMenu.active {
-            left: 0;
-        }
-        #sideMenu input,
-        #sideMenu select {
-            width: 100%;
-            padding: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
+  <style>
+    /* ---------------------- Genel Stil ---------------------- */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      /* Body overflow: hidden, ama tablo ve modal kendi içlerinde scrollbar’a izin veriyor */
+      overflow: hidden;
+    }
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: #e91e63;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      z-index: 10;
+    }
+    .navbar .menu-btn {
+      font-size: 26px;
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      margin-right: 20px;
+    }
+    .navbar span {
+      font-weight: bold;
+      font-size: 20px;
+    }
 
-        .filter-inputs {
-            display: flex;
-            gap: 10px;
-        }
-        .filter-inputs input {
-            flex: 1;
-        }
+    /* ---------------------- Yan Menü (SideMenu) ---------------------- */
+    #sideMenu {
+      position: fixed;
+      top: 50px;
+      left: -250px; /* Başlangıçta gizli */
+      width: 220px;
+      bottom: 0;
+      background: #fff;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      overflow-y: auto;
+      gap: 10px;
+      z-index: 9;
+      transition: left 0.3s ease;
+    }
+    #sideMenu.active {
+      left: 0;
+    }
+    #sideMenu input,
+    #sideMenu select {
+      width: 100%;
+      padding: 5px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    .filter-inputs {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    .filter-inputs input {
+      flex: 1;
+    }
+    /* QR Butonu Küçük Input Yanı */
+    #qr-btn {
+      padding: 5px 8px;
+      font-size: 18px;
+      cursor: pointer;
+      background: #e91e63;
+      color: white;
+      border: none;
+      border-radius: 3px;
+    }
 
-        #table-container {
-            position: fixed;
-            top: 50px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: white;
-            overflow: auto;
-            z-index: 5;
-            transition: left 0.3s ease, width 0.3s ease;
-        }
-        #table-container.shifted {
-            left: 241px;
-            width: calc(100% - 220px);
-        }
+    /* ---------------------- Tablo Alanı ---------------------- */
+    #table-container {
+      position: fixed;
+      top: 50px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      overflow: auto; /* Tablo yatay/dikey scrollda gezinsin */
+      z-index: 5;
+      transition: left 0.3s ease, width 0.3s ease;
+    }
+    #table-container.shifted {
+      left: 241px;
+      width: calc(100% - 220px);
+    }
+    #table-title {
+      margin: 0.5cm 0 10px 10px;
+      color: #e91e63;
+      font-size: 24px;
+    }
+    table {
+      width: 100%;
+      min-width: 600px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #e91e63;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    tr:hover {
+      background: #f1f1f1;
+      cursor: pointer;
+    }
+    tr.selected {
+      background-color: lightgreen !important;
+    }
 
-        #table-title {
-            margin: 0.5cm 0 10px 10px;
-            color: #e91e63;
-            font-size: 24px;
-        }
+    /* ---------------------- Önizleme Kutusu ---------------------- */
+    #image-viewer {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      width: 320px;
+      height: 320px;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      padding: 0;
+      overflow: hidden;
+      border-radius: 10px;
+      z-index: 20;
+      display: none;
+      transition: all 0.3s ease;
+    }
+    #image-viewer iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+    #image-viewer.fullscreen {
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+      z-index: 1000;
+    }
+    #close-btn, #fullscreen-btn {
+      position: absolute;
+      background: #e91e63;
+      color: white;
+      border: none;
+      font-size: 20px;
+      padding: 10px 15px;
+      cursor: pointer;
+      z-index: 1001;
+      border-radius: 5px;
+    }
+    #close-btn { top: 10px; right: 10px; }
+    #fullscreen-btn { top: 10px; left: 10px; }
 
-        table {
-            width: 100%;
-            min-width: 600px;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #e91e63;
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-        }
-        tr:nth-child(even) {
-            background: #f9f9f9;
-        }
-        tr:hover {
-            background: #f1f1f1;
-            cursor: pointer;
-        }
-        /* Seçili satır için */
-        tr.selected {
-            background-color: lightgreen !important;
-        }
-
-        #image-viewer {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            width: 320px;
-            height: 320px;
-            background: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
-            padding: 0;
-            overflow: hidden;
-            border-radius: 10px;
-            z-index: 20;
-            display: none;
-            transition: all 0.3s ease;
-        }
-        #image-viewer iframe {
-            width: 100%;
-            height: 100%;
-            border: 0;
-        }
-        #image-viewer.fullscreen {
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100vw;
-            height: 100vh;
-            border-radius: 0;
-            z-index: 1000;
-        }
-        #close-btn, #fullscreen-btn {
-            position: absolute;
-            background: #e91e63;
-            color: white;
-            border: none;
-            font-size: 20px;
-            padding: 10px 15px;
-            cursor: pointer;
-            z-index: 1001;
-            border-radius: 5px;
-        }
-        #close-btn { top: 10px; right: 10px; }
-        #fullscreen-btn { top: 10px; left: 10px; }
-    </style>
+    /* ---------------------- QR Kod Okuma Modalı ---------------------- */
+    #qr-modal {
+      display: none; /* Başlangıçta gizli */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #qr-modal.active {
+      display: flex;
+    }
+    #qr-container {
+      position: relative;
+      width: 320px;
+      max-width: 90vw;
+      background: white;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    #qr-close {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: #e91e63;
+      color: white;
+      border: none;
+      font-size: 18px;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      z-index: 2;
+    }
+    #qr-reader {
+      margin-top: 35px; /* Üstteki close butonundan boşluk */
+      width: 300px;
+      height: 300px;
+    }
+    /* Mobil uyumluluk için */
+    @media (max-width: 500px) {
+      #qr-container {
+        width: 90vw;
+      }
+      #qr-reader {
+        width: 90vw;
+        height: 90vw;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="navbar">
-        <button class="menu-btn" onclick="toggleMenu()">☰</button>
-        <span>Wink Official</span>
+  <!-- ---------------------- Navbar ---------------------- -->
+  <div class="navbar">
+    <button class="menu-btn" onclick="toggleMenu()">☰</button>
+    <span>Wink Official</span>
+  </div>
+
+  <!-- ---------------------- Side Menu ---------------------- -->
+  <div id="sideMenu">
+    <div><label for="combo-box1">Mobilya</label><select id="combo-box1"></select></div>
+    <div><label for="combo-box2">Oda</label><select id="combo-box2"></select></div>
+    <div><label for="combo-box3">Mobilya</label><select id="combo-box3"></select></div>
+    <div><label for="combo-box4">Delik</label><select id="combo-box4"></select></div>
+    <div><label for="combo-box5">Material</label><select id="combo-box5"></select></div>
+    <div><label for="combo-box6">Kalinlik</label><select id="combo-box6"></select></div>
+    <div><label for="combo-box7">Reng</label><select id="combo-box7"></select></div>
+    <div><label for="combo-box8">PVC Var?</label><select id="combo-box8"></select></div>
+    <div><label for="combo-box9">Islem Var?</label><select id="combo-box9"></select></div>
+    <div><label for="combo-box10">PVC</label><select id="combo-box10"></select></div>
+    <div><label for="combo-box11">Parca Ismi</label><select id="combo-box11"></select></div>
+
+    <!-- Genişlik ve Yukseklik Aramaları -->
+    <div class="filter-inputs">
+      <input type="text" id="exact-search" placeholder="Genislik" />
+      <input type="text" id="range-search" placeholder="Yukseklik" />
     </div>
 
-    <div id="sideMenu">
-        <div><label for="combo-box1">Mobilya</label><select id="combo-box1"></select></div>
-        <div><label for="combo-box2">Oda</label><select id="combo-box2"></select></div>
-        <div><label for="combo-box3">Mobilya</label><select id="combo-box3"></select></div>
-        <div><label for="combo-box4">Delik</label><select id="combo-box4"></select></div>
-        <div><label for="combo-box5">Material</label><select id="combo-box5"></select></div>
-        <div><label for="combo-box6">Kalinlik</label><select id="combo-box6"></select></div>
-        <div><label for="combo-box7">Reng</label><select id="combo-box7"></select></div>
-        <div><label for="combo-box8">PVC Var?</label><select id="combo-box8"></select></div>
-        <div><label for="combo-box9">Islem Var?</label><select id="combo-box9"></select></div>
-        <div><label for="combo-box10">PVC</label><select id="combo-box10"></select></div>
-        <div><label for="combo-box11">Parca Ismi</label><select id="combo-box11"></select></div>
-
-        <div class="filter-inputs">
-            <input type="text" id="exact-search" placeholder="Genislik" />
-            <input type="text" id="range-search" placeholder="Yukseklik" />
-        </div>
-
-        <div style="margin-top: auto;">
-            <input id="search-box" placeholder="BARCOD" />
-        </div>
+    <!-- BARCOD Input ve Yanındaki QR Butonu -->
+    <div class="filter-inputs" style="margin-top: auto;">
+      <input type="text" id="search-box" placeholder="BARCOD" />
+      <button id="qr-btn" title="QR ile Tara">📷</button>
     </div>
+  </div>
 
-    <div id="table-container">
-        <h2 id="table-title">Baza</h2>
-        <table id="data-table">
-            <thead><tr></tr></thead>
-            <tbody></tbody>
-        </table>
+  <!-- ---------------------- Tablo Alanı ---------------------- -->
+  <div id="table-container">
+    <h2 id="table-title">Baza</h2>
+    <table id="data-table">
+      <thead><tr></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- ---------------------- Resim Önizleme ---------------------- -->
+  <div id="image-viewer">
+    <button id="close-btn" onclick="closeViewer(event)">X</button>
+    <button id="fullscreen-btn" onclick="toggleFullscreen(event)">⛶</button>
+  </div>
+
+  <!-- ---------------------- QR Kod Okuma Modalı ---------------------- -->
+  <div id="qr-modal">
+    <div id="qr-container">
+      <button id="qr-close">X</button>
+      <div id="qr-reader"></div>
     </div>
+  </div>
 
-    <div id="image-viewer">
-        <button id="close-btn" onclick="closeViewer(event)">X</button>
-        <button id="fullscreen-btn" onclick="toggleFullscreen(event)">⛶</button>
-    </div>
+  <!-- ---------------------- JavaScript ---------------------- -->
+  <script>
+    /* ======================= Genel Değişkenler ======================= */
+    const sheetId     = "1muERJfee4k6vxP49NkMGUGo0t5RzpMTbszaAQ5KOAqo";
+    const sheetName   = "SheetName";
+    const jsonUrl     = `https://opensheet.vercel.app/${sheetId}/${sheetName}`;
+    let originalData  = [];
+    const visibleCols = 21;
+    let selectedRow   = null;
+    let keysAll       = [];   // JSON objesinin tüm sütun başlıkları
+    let html5QrcodeScanner = null; // QR kod okuyucu örneği
 
-    <script>
-        const sheetId = "1muERJfee4k6vxP49NkMGUGo0t5RzpMTbszaAQ5KOAqo";
-        const sheetName = "SheetName";
-        const jsonUrl = `https://opensheet.vercel.app/${sheetId}/${sheetName}`;
-        let originalData = [];
-        const visibleCols = 21;
-        let selectedRow = null;  // Seçili satırı takip etmek için
+    /* ======================= Menü Aç/Kapa ======================= */
+    function toggleMenu() {
+      document.getElementById("sideMenu").classList.toggle("active");
+      document.getElementById("table-container").classList.toggle("shifted");
+    }
 
-        function toggleMenu() {
-            document.getElementById("sideMenu").classList.toggle("active");
-            document.getElementById("table-container").classList.toggle("shifted");
+    /* ======================= Veri Çekme ve Tablo Hazırlama ======================= */
+    function loadSheetData() {
+      fetch(jsonUrl)
+        .then(r => r.json())
+        .then(data => {
+          if (!data || data.length === 0) {
+            alert("Gösterilecek veri bulunamadı.");
+            return;
+          }
+          originalData = data;
+          keysAll      = Object.keys(data[0]);
+
+          // Tablo başlıklarını oluştur
+          const thead = document.querySelector("#data-table thead tr");
+          thead.innerHTML = "";
+          keysAll.slice(0, visibleCols).forEach(h => {
+            thead.innerHTML += `<th>${h}</th>`;
+          });
+          thead.innerHTML += "<th></th>"; // Download butonu için boş başlık
+
+          setupFilters(data);
+          fillTable(data);
+        })
+        .catch(e => {
+          console.error("Veri çekme hatası:", e);
+          alert("Veri alınırken bir sorun oluştu.");
+        });
+    }
+
+    /* ======================= Filtre (ComboBox + Arama + Numeric) ======================= */
+    const comboBoxes = [
+      { id: "combo-box1", cols: [0] },
+      { id: "combo-box2", cols: [1] },
+      { id: "combo-box3", cols: [2] },
+      { id: "combo-box4", cols: [5] },
+      { id: "combo-box5", cols: [6] },
+      { id: "combo-box6", cols: [7] },
+      { id: "combo-box7", cols: [9] },
+      { id: "combo-box8", cols: [12] },
+      { id: "combo-box9", cols: [15] },
+      { id: "combo-box10", cols: [17,18,19,20] },
+      { id: "combo-box11", cols: [4] }
+    ];
+
+    function setupFilters(data) {
+      // Her bir comboBox için seçeneği hazırla
+      comboBoxes.forEach(({ id, cols }) => {
+        const sel = document.getElementById(id);
+        sel.innerHTML = `<option value="TÜMÜ">TÜMÜ</option>`;
+        const s = new Set();
+        data.forEach(r => cols.forEach(ci => {
+          const v = r[keysAll[ci]];
+          if (v) s.add(v);
+        }));
+        Array.from(s).sort((a, b) => a.toString().localeCompare(b.toString(), 'tr'))
+                   .forEach(v => {
+                     sel.innerHTML += `<option value="${v}">${v}</option>`;
+                   });
+        sel.onchange = applyFilters;
+      });
+
+      // BARCOD search-box ve numeric aramalar
+      document.getElementById("search-box").oninput    = applyFilters;
+      document.getElementById("exact-search").oninput   = applyFilters;
+      document.getElementById("range-search").oninput   = applyFilters;
+    }
+
+    function applyFilters() {
+      const txt      = document.getElementById("search-box").value.trim().toLowerCase();
+      const exactVal = document.getElementById("exact-search").value.trim();
+      const rangeVal = document.getElementById("range-search").value.trim();
+      const rangeNum = parseFloat(rangeVal);
+
+      // 1) ComboBox’a göre filtre
+      let comboFiltered = originalData.filter(r =>
+        comboBoxes.every(({id, cols}) => {
+          const sel = document.getElementById(id).value;
+          return sel === "TÜMÜ" || cols.some(ci => r[keysAll[ci]] === sel);
+        })
+      );
+      updateComboBoxes(comboFiltered);
+
+      // 2) BARCOD arama
+      let filtered = txt
+        ? comboFiltered.filter(r => r[keysAll[3]]?.toString().toLowerCase().includes(txt))
+        : comboFiltered;
+
+      // 3) Exact arama (Genislik)
+      if (exactVal) {
+        filtered = filtered.filter(r => {
+          const v11 = r[keysAll[10]];
+          const v14 = r[keysAll[13]];
+          return v11 == exactVal || v14 == exactVal;
+        });
+      }
+
+      // 4) Range arama (Yukseklik ±3 tolerans)
+      if (!isNaN(rangeNum)) {
+        filtered = filtered.filter(r => {
+          const v12 = parseFloat(r[keysAll[11]]);
+          const v15 = parseFloat(r[keysAll[14]]);
+          const ok12 = !isNaN(v12) && Math.abs(v12 - rangeNum) <= 3;
+          const ok15 = !isNaN(v15) && Math.abs(v15 - rangeNum) <= 3;
+          return ok12 || ok15;
+        });
+      }
+
+      fillTable(filtered);
+    }
+
+    function updateComboBoxes(data) {
+      comboBoxes.forEach(({ id, cols }) => {
+        const select = document.getElementById(id);
+        const current = select.value;
+        const values = new Set();
+        data.forEach(r => cols.forEach(ci => {
+          const v = r[keysAll[ci]];
+          if (v) values.add(v);
+        }));
+        select.innerHTML = `<option value="TÜMÜ">TÜMÜ</option>`;
+        Array.from(values).sort((a,b) => a.toString().localeCompare(b.toString(),'tr'))
+                          .forEach(v => {
+                            select.innerHTML += `<option value="${v}">${v}</option>`;
+                          });
+        if ([...select.options].some(o => o.value === current)) {
+          select.value = current;
         }
+      });
+    }
 
-        const comboBoxes = [
-            { id: "combo-box1", cols: [0] },
-            { id: "combo-box2", cols: [1] },
-            { id: "combo-box3", cols: [2] },
-            { id: "combo-box4", cols: [5] },
-            { id: "combo-box5", cols: [6] },
-            { id: "combo-box6", cols: [7] },
-            { id: "combo-box7", cols: [9] },
-            { id: "combo-box8", cols: [12] },
-            { id: "combo-box9", cols: [15] },
-            { id: "combo-box10", cols: [17,18,19,20] },
-            { id: "combo-box11", cols: [4] }
-        ];
+    /* ======================= Tablo Doldurma ve Download Butonu ======================= */
+    function fillTable(data) {
+      const tb = document.querySelector("#data-table tbody");
+      tb.innerHTML = "";
+      data.forEach(r => {
+        const tr = document.createElement("tr");
+        // Eğer 25. sütun (önizleme linki) boş değilse arka planı sarı yap
+        if (r[keysAll[25]]?.toString().trim()) tr.style.backgroundColor = "yellow";
 
-        function loadSheetData() {
-            fetch(jsonUrl)
-                .then(r => r.json())
-                .then(data => {
-                    originalData = data;
-                    const thead = document.querySelector("#data-table thead tr");
-                    thead.innerHTML = "";
-                    Object.keys(data[0]).slice(0, visibleCols)
-                        .forEach(h => thead.innerHTML += `<th>${h}</th>`);
-                    thead.innerHTML += "<th></th>";
-                    setupFilters(data);
-                    fillTable(data);
-                })
-                .catch(e => alert(e));
-        }
+        // 0–visibleCols-1 arasını hücre olarak ekle
+        keysAll.slice(0, visibleCols).forEach(k => {
+          const td = document.createElement("td");
+          td.textContent = r[k] || "";
+          tr.appendChild(td);
+        });
 
-        function setupFilters(data) {
-            comboBoxes.forEach(({ id, cols }) => {
-                const sel = document.getElementById(id);
-                sel.innerHTML = `<option value="TÜMÜ">TÜMÜ</option>`;
-                const s = new Set();
-                data.forEach(r => cols.forEach(ci => {
-                    const v = r[Object.keys(r)[ci]];
-                    if (v) s.add(v);
-                }));
-                Array.from(s).sort().forEach(v => {
-                    sel.innerHTML += `<option value="${v}">${v}</option>`;
-                });
-                sel.onchange = applyFilters;
-            });
-            document.getElementById("search-box").oninput = applyFilters;
-            document.getElementById("exact-search").oninput = applyFilters;
-            document.getElementById("range-search").oninput = applyFilters;
-        }
-
-        function updateComboBoxes(data) {
-            comboBoxes.forEach(({ id, cols }) => {
-                const select = document.getElementById(id);
-                const current = select.value;
-                const values = new Set();
-                data.forEach(r => cols.forEach(ci => {
-                    const v = r[Object.keys(r)[ci]];
-                    if (v) values.add(v);
-                }));
-                select.innerHTML = `<option value="TÜMÜ">TÜMÜ</option>`;
-                Array.from(values).sort().forEach(v => {
-                    select.innerHTML += `<option value="${v}">${v}</option>`;
-                });
-                if ([...select.options].some(o => o.value === current)) {
-                    select.value = current;
-                }
-            });
-        }
-
-        function fillTable(data) {
-            const tb = document.querySelector("#data-table tbody");
-            tb.innerHTML = "";
-            data.forEach(r => {
-                const tr = document.createElement("tr");
-                const keys = Object.keys(r);
-                if (r[keys[25]]?.toString().trim()) tr.style.backgroundColor = "yellow";
-                keys.slice(0, visibleCols).forEach(k => {
-                    tr.innerHTML += `<td>${r[k]||""}</td>`;
-                });
-                const fileLink = r[keys[23]]||"";
-                const td = document.createElement("td");
-                const btn = document.createElement("button");
-                btn.textContent = " ↓ ";
-                if (!fileLink.trim()) btn.disabled = true;
-                else btn.onclick = e => {
-                    e.stopPropagation();
-                    const id = getFileId(fileLink);
-                    if (id) {
-                        const a = document.createElement('a');
-                        a.href = `https://drive.google.com/uc?export=download&id=${id}`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                    } else alert("Geçerli dosya linki bulunamadı.");
-                };
-                td.appendChild(btn);
-                tr.appendChild(td);
-
-                tr.onclick = () => {
-                    // Önceki seçili satırı temizle
-                    if (selectedRow) selectedRow.classList.remove('selected');
-                    // Yeni satırı seç
-                    tr.classList.add('selected');
-                    selectedRow = tr;
-                    // Önizlemeyi göster
-                    showPreview(r[keys[25]]);
-                };
-
-                tb.appendChild(tr);
-            });
-        }
-
-        function applyFilters() {
-            const txt      = document.getElementById("search-box").value.toLowerCase();
-            const exactVal = document.getElementById("exact-search").value.trim();
-            const rangeVal = document.getElementById("range-search").value.trim();
-            const rangeNum = parseFloat(rangeVal);
-            const keysAll  = originalData.length ? Object.keys(originalData[0]) : [];
-
-            let comboFiltered = originalData.filter(r =>
-                comboBoxes.every(({id, cols}) => {
-                    const sel = document.getElementById(id).value;
-                    return sel === "TÜMÜ" || cols.some(ci => r[keysAll[ci]] === sel);
-                })
-            );
-            updateComboBoxes(comboFiltered);
-
-            let filtered = txt
-                ? comboFiltered.filter(r => r[keysAll[3]]?.toLowerCase().includes(txt))
-                : comboFiltered;
-
-            if (exactVal) {
-                filtered = filtered.filter(r => {
-                    const v11 = r[keysAll[10]];
-                    const v14 = r[keysAll[13]];
-                    return v11 == exactVal || v14 == exactVal;
-                });
-            }
-
-            if (!isNaN(rangeNum)) {
-                filtered = filtered.filter(r => {
-                    const v12 = parseFloat(r[keysAll[11]]);
-                    const v15 = parseFloat(r[keysAll[14]]);
-                    const ok12 = !isNaN(v12) && Math.abs(v12 - rangeNum) <= 3;
-                    const ok15 = !isNaN(v15) && Math.abs(v15 - rangeNum) <= 3;
-                    return ok12 || ok15;
-                });
-            }
-
-            fillTable(filtered);
-        }
-
-        function getFileId(url) {
-            let m = url.match(/\/d\/([^\/]+)\//);
-            if (m) return m[1];
-            m = url.match(/[?&]id=([^&]+)/);
-            return m ? m[1] : null;
-        }
-
-        function showPreview(url) {
-            const viewer = document.getElementById("image-viewer");
-            const id = getFileId(url);
+        // Download butonu için son sütun
+        const linkKey = keysAll[23];
+        const fileLink = r[linkKey] || "";
+        const tdBtn = document.createElement("td");
+        const btn = document.createElement("button");
+        btn.textContent = " ↓ ";
+        if (!fileLink.trim()) {
+          btn.disabled = true;
+          btn.title = "Dosya yok";
+        } else {
+          btn.onclick = e => {
+            e.stopPropagation();
+            const id = getFileId(fileLink);
             if (id) {
-                viewer.innerHTML = `
-                  <button id="close-btn" onclick="closeViewer(event)">X</button>
-                  <button id="fullscreen-btn" onclick="toggleFullscreen(event)">⛶</button>
-                  <iframe src="https://drive.google.com/file/d/${id}/preview" allow="autoplay"></iframe>`;
-                viewer.style.display = "block";
-            } else viewer.style.display = "none";
+              const a = document.createElement("a");
+              a.href = `https://drive.google.com/uc?export=download&id=${id}`;
+              a.download = "";
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            } else {
+              alert("Geçerli dosya linki bulunamadı.");
+            }
+          };
         }
+        tdBtn.appendChild(btn);
+        tr.appendChild(tdBtn);
 
-        function closeViewer(e) {
-            e.stopPropagation();
-            const v = document.getElementById("image-viewer");
-            v.classList.remove("fullscreen");
-            v.style.display = "none";
+        // Satıra tıklanınca satır seçimi ve önizleme
+        tr.onclick = () => {
+          if (selectedRow) selectedRow.classList.remove('selected');
+          tr.classList.add('selected');
+          selectedRow = tr;
+          showPreview(r[keysAll[25]]);
+        };
+
+        tb.appendChild(tr);
+      });
+    }
+
+    /* ======================= Dosya ID Çekme ======================= */
+    function getFileId(url) {
+      let m = url.match(/\/d\/([^\/]+)\//);
+      if (m) return m[1];
+      m = url.match(/[?&]id=([^&]+)/);
+      if (m) return m[1];
+      m = url.match(/open\?id=([^&]+)/);
+      return m ? m[1] : null;
+    }
+
+    /* ======================= Önizleme (Drive iframe) ======================= */
+    function showPreview(url) {
+      const viewer = document.getElementById("image-viewer");
+      const id = getFileId(url);
+      if (id) {
+        viewer.innerHTML = `
+          <button id="close-btn" onclick="closeViewer(event)">X</button>
+          <button id="fullscreen-btn" onclick="toggleFullscreen(event)">⛶</button>
+          <iframe src="https://drive.google.com/file/d/${id}/preview" allow="autoplay"></iframe>`;
+        viewer.style.display = "block";
+      } else {
+        viewer.style.display = "none";
+      }
+    }
+
+    function closeViewer(e) {
+      e.stopPropagation();
+      const v = document.getElementById("image-viewer");
+      v.classList.remove("fullscreen");
+      v.style.display = "none";
+    }
+    function toggleFullscreen(e) {
+      e.stopPropagation();
+      document.getElementById("image-viewer").classList.toggle("fullscreen");
+    }
+
+    /* ======================= QR Butonu Click & Modal Kontrol ======================= */
+    document.getElementById("qr-btn").addEventListener("click", () => {
+      openQrModal();
+    });
+    document.getElementById("qr-close").addEventListener("click", () => {
+      closeQrModal();
+    });
+
+    function openQrModal() {
+      const modal = document.getElementById("qr-modal");
+      modal.classList.add("active");
+
+      // Eğer html5QrcodeScanner zaten başlatılmamışsa yeni bir örnek oluştur
+      if (!html5QrcodeScanner) {
+        html5QrcodeScanner = new Html5Qrcode("qr-reader");
+      }
+
+      // Kamera cihazlarına erişip “arka kamerayı” seç
+      Html5Qrcode.getCameras().then(cameras => {
+        if (cameras && cameras.length) {
+          // “back” kelimesi içeren ilk cihazı veya yoksa ilk kamerayı al
+          const backCamera = cameras.find(cam => cam.label.toLowerCase().includes("back")) || cameras[0];
+
+          const config = {
+            fps: 10,
+            qrbox: { width: 300, height: 300 }, 
+            // Buraya ID veriyoruz:
+            cameraId: backCamera.id
+          };
+
+          html5QrcodeScanner.start(
+            backCamera.id,
+            config,
+            onScanSuccess,
+            onScanFailure
+          ).catch(err => {
+            alert("Kamera başlatılamadı: " + err);
+          });
+        } else {
+          alert("Cihazda kamera bulunamadı!");
+          closeQrModal();
         }
-        function toggleFullscreen(e) {
-            e.stopPropagation();
-            document.getElementById("image-viewer").classList.toggle("fullscreen");
-        }
+      }).catch(err => {
+        alert("Kamera bilgisi alınamadı: " + err);
+        closeQrModal();
+      });
+    }
 
-        loadSheetData();
-    </script>
+    function closeQrModal() {
+      const modal = document.getElementById("qr-modal");
+      modal.classList.remove("active");
+      // Tarama devam ediyorsa durdur
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.stop().catch(_ => {
+          // Hata olursa sessiz geç
+        });
+      }
+    }
 
+    /* ======================= QR Tarama Başarılı/Başarısız Callback ======================= */
+    function onScanSuccess(decodedText, decodedResult) {
+      // TARANI LAN QR Kod metnini “search-box”a yaz
+      document.getElementById("search-box").value = decodedText;
+      // Filtreyi hemen uygula
+      applyFilters();
+      // Modalı kapat ve kamera durdur
+      closeQrModal();
+    }
+
+    function onScanFailure(error) {
+      // Hata mesajlarını sessizce geçiyoruz (kötü kareler için)
+      // console.warn(`Tarama hatası: ${error}`);
+    }
+
+    /* ======================= Sayfa Yüklenince Veri Al ======================= */
+    window.onload = loadSheetData;
+  </script>
 </body>
 </html>
