@@ -1,32 +1,25 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Canlı Barkod/QR Tara</title>
   <style>
     body {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      margin: 0;
       padding: 1rem;
+      margin: 0;
       font-family: Arial, sans-serif;
       background: #fafafa;
     }
-    #qr-reader {
-      width: 90vw;
-      max-width: 400px;
-      height: auto;
-      border: 2px solid #e91e63;
-      border-radius: 8px;
-      margin-top: 1rem;
+    h1 {
+      margin-bottom: 0.5rem;
+      color: #e91e63;
     }
-    #result {
-      margin-top: 1rem;
-      font-size: 1.2rem;
-      color: #333;
+    #controls {
+      margin-bottom: 1rem;
     }
     button {
       padding: 0.75rem 1.5rem;
@@ -36,79 +29,89 @@
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      margin: 0.5rem;
+      margin: 0 0.5rem;
     }
     button:disabled {
       opacity: 0.5;
       cursor: default;
     }
+    #qr-reader {
+      width: 90vw;
+      max-width: 400px;
+      height: auto;
+      border: 2px solid #e91e63;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    #result {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      color: #333;
+    }
   </style>
-  <!-- html5-qrcode kütüphanesi CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"
-          integrity="sha512-bbW7QF9rAauMgBm+Rz1eFvvGdnOi6Ljtf+Jgz4CgUgpxjwyU7AypUq+ogWvjihg9eur+guVhsRxpZ806H1oMTg=="
-          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <!-- html5-qrcode CDN -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"
+    integrity="sha512-bbW7QF9rAauMgBm+Rz1eFvvGdnOi6Ljtf+Jgz4CgUgpxjwyU7AypUq+ogWvjihg9eur+guVhsRxpZ806H1oMTg=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
 
   <h1>Canlı Barkod/QR Tara</h1>
-  <div>
+  <div id="controls">
     <button id="start-btn">Kamerayı Başlat</button>
-    <button id="stop-btn" disabled>Durdur</button>
+    <button id="stop-btn" disabled>Durdu­r</button>
   </div>
 
-  <!-- Kamera akışının geleceği div -->
   <div id="qr-reader"></div>
-
-  <!-- Okunan sonuç burada gösterilecek -->
-  <div id="result">🔍 Henüz bir barkod/QR okunmadı.</div>
+  <div id="result">🔍 Henüz bir kod okunmadı.</div>
 
   <script>
     const startBtn = document.getElementById('start-btn');
     const stopBtn  = document.getElementById('stop-btn');
-    const resultElem = document.getElementById('result');
-    const qrReaderId = "qr-reader";
+    const resultEl = document.getElementById('result');
+    const qrRegion = "qr-reader";
 
-    // Html5Qrcode örneği
-    const html5QrCode = new Html5Qrcode(qrReaderId);
-
-    let currentCameraId = null;
+    // html5-qrcode örneği
+    const html5QrCode = new Html5Qrcode(qrRegion);
+    let cameraId = null;
 
     startBtn.addEventListener('click', () => {
       startBtn.disabled = true;
-      resultElem.textContent = '📷 Kamera açılıyor…';
-      // Mevcut video cihazlarını al
+      resultEl.textContent = '📷 Kamera açılıyor…';
+
+      // Kameraları listele
       Html5Qrcode.getCameras()
         .then(devices => {
           if (!devices || devices.length === 0) {
-            resultElem.textContent = '⚠️ Kamera bulunamadı.';
+            resultEl.textContent = '⚠️ Kamera bulunamadı.';
             startBtn.disabled = false;
             return;
           }
-          // Arka kamerası seçmeye çalış
-          const backCam = devices.find(d => /back|rear|environment/i.test(d.label)) || devices[0];
-          currentCameraId = backCam.id;
+          // Arka kamerayı seç
+          const back = devices.find(d => /back|rear|environment/i.test(d.label)) || devices[0];
+          cameraId = back.id;
 
-          // Kamera akışını başlat
+          // Kamerayı başlat
           html5QrCode.start(
-            currentCameraId,
-            { fps: 10, qrbox: 250 },  // saniyede 10 kare, 250px'lik kare alanı
-            decodedText => {
-              // Başarıyla okunduğunda
-              resultElem.textContent = `✅ Okunan kod: ${decodedText}`;
+            cameraId,
+            { fps: 10, qrbox: 250 },
+            decoded => {
+              resultEl.textContent = `✅ Okunan kod: ${decoded}`;
             },
-            errorMessage => {
-              // Okunamayan kareler için hata yoksay
+            err => {
+              // QR bulunamadığında gelen hataları yoksay
             }
           ).then(() => {
             stopBtn.disabled = false;
-            resultElem.textContent = '🔍 Tarama başladı, barkodu gösterin.';
+            resultEl.textContent = '🔍 Tarama başladı. Barkodu kameraya gösterin.';
           }).catch(err => {
-            resultElem.textContent = '⛔ Kamera başlatılamadı: ' + err;
+            resultEl.textContent = '⛔ Kamera başlatılamadı: ' + err;
             startBtn.disabled = false;
           });
         })
         .catch(err => {
-          resultElem.textContent = '⚠️ Cihaz bilgisi alınamadı: ' + err;
+          resultEl.textContent = '⚠️ Kameralar alınamadı: ' + err;
           startBtn.disabled = false;
         });
     });
@@ -117,11 +120,11 @@
       stopBtn.disabled = true;
       html5QrCode.stop()
         .then(() => {
-          resultElem.textContent = '🛑 Tarama durduruldu.';
+          resultEl.textContent = '🛑 Tarama durduruldu.';
           startBtn.disabled = false;
         })
         .catch(err => {
-          resultElem.textContent = '⚠️ Durdurulamadı: ' + err;
+          resultEl.textContent = '⚠️ Durdurulamadı: ' + err;
         });
     });
   </script>
