@@ -3,23 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Canlı Barkod Tara</title>
+  <title>Canlı Barkod/QR Tara</title>
   <style>
     body {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
+      justify-content: flex-start;
       margin: 0;
-      background: #fafafa;
+      padding: 1rem;
       font-family: Arial, sans-serif;
+      background: #fafafa;
     }
-    video {
+    #qr-reader {
       width: 90vw;
       max-width: 400px;
+      height: auto;
       border: 2px solid #e91e63;
       border-radius: 8px;
+      margin-top: 1rem;
     }
     #result {
       margin-top: 1rem;
@@ -27,55 +29,100 @@
       color: #333;
     }
     button {
-      margin-top: 1rem;
       padding: 0.75rem 1.5rem;
       font-size: 1rem;
       background: #e91e63;
-      color: white;
+      color: #fff;
       border: none;
       border-radius: 6px;
       cursor: pointer;
+      margin: 0.5rem;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: default;
     }
   </style>
-  <!-- ZXing kütüphanesini CDN’den alıyoruz -->
-  <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <!-- html5-qrcode kütüphanesi CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"
+          integrity="sha512-bbW7QF9rAauMgBm+Rz1eFvvGdnOi6Ljtf+Jgz4CgUgpxjwyU7AypUq+ogWvjihg9eur+guVhsRxpZ806H1oMTg=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
 
-  <video id="video" muted playsinline></video>
-  <div id="result">📷 Barkod bekleniyor...</div>
-  <button id="start-btn">Kamerayı Başlat</button>
+  <h1>Canlı Barkod/QR Tara</h1>
+  <div>
+    <button id="start-btn">Kamerayı Başlat</button>
+    <button id="stop-btn" disabled>Durdur</button>
+  </div>
+
+  <!-- Kamera akışının geleceği div -->
+  <div id="qr-reader"></div>
+
+  <!-- Okunan sonuç burada gösterilecek -->
+  <div id="result">🔍 Henüz bir barkod/QR okunmadı.</div>
 
   <script>
-    const codeReader = new ZXing.BrowserMultiFormatContinuousReader();
-    const videoElem = document.getElementById('video');
-    const resultElem = document.getElementById('result');
     const startBtn = document.getElementById('start-btn');
+    const stopBtn  = document.getElementById('stop-btn');
+    const resultElem = document.getElementById('result');
+    const qrReaderId = "qr-reader";
 
-    startBtn.addEventListener('click', async () => {
+    // Html5Qrcode örneği
+    const html5QrCode = new Html5Qrcode(qrReaderId);
+
+    let currentCameraId = null;
+
+    startBtn.addEventListener('click', () => {
       startBtn.disabled = true;
-      resultElem.textContent = 'Kamera açılıyor…';
-      try {
-        // Varsayılan olarak arka kamerayı seç
-        const devices = await ZXing.BrowserCodeReader.listVideoInputDevices();
-        const backCamera = devices.find(d => /back|rear|environment/i.test(d.label)) || devices[0];
-
-        await codeReader.startContinuousDecodeFromVideoDevice(
-          backCamera.deviceId,
-          videoElem,
-          (result, err) => {
-            if (result) {
-              resultElem.textContent = '🔍 Barkod: ' + result.getText();
-            }
-            if (err && !(err instanceof ZXing.NotFoundException)) {
-              console.error(err);
-            }
+      resultElem.textContent = '📷 Kamera açılıyor…';
+      // Mevcut video cihazlarını al
+      Html5Qrcode.getCameras()
+        .then(devices => {
+          if (!devices || devices.length === 0) {
+            resultElem.textContent = '⚠️ Kamera bulunamadı.';
+            startBtn.disabled = false;
+            return;
           }
-        );
-      } catch (e) {
-        console.error(e);
-        resultElem.textContent = '⛔ Kamera açılamadı: ' + e;
-      }
+          // Arka kamerası seçmeye çalış
+          const backCam = devices.find(d => /back|rear|environment/i.test(d.label)) || devices[0];
+          currentCameraId = backCam.id;
+
+          // Kamera akışını başlat
+          html5QrCode.start(
+            currentCameraId,
+            { fps: 10, qrbox: 250 },  // saniyede 10 kare, 250px'lik kare alanı
+            decodedText => {
+              // Başarıyla okunduğunda
+              resultElem.textContent = `✅ Okunan kod: ${decodedText}`;
+            },
+            errorMessage => {
+              // Okunamayan kareler için hata yoksay
+            }
+          ).then(() => {
+            stopBtn.disabled = false;
+            resultElem.textContent = '🔍 Tarama başladı, barkodu gösterin.';
+          }).catch(err => {
+            resultElem.textContent = '⛔ Kamera başlatılamadı: ' + err;
+            startBtn.disabled = false;
+          });
+        })
+        .catch(err => {
+          resultElem.textContent = '⚠️ Cihaz bilgisi alınamadı: ' + err;
+          startBtn.disabled = false;
+        });
+    });
+
+    stopBtn.addEventListener('click', () => {
+      stopBtn.disabled = true;
+      html5QrCode.stop()
+        .then(() => {
+          resultElem.textContent = '🛑 Tarama durduruldu.';
+          startBtn.disabled = false;
+        })
+        .catch(err => {
+          resultElem.textContent = '⚠️ Durdurulamadı: ' + err;
+        });
     });
   </script>
 
